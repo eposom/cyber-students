@@ -3,8 +3,10 @@ from time import mktime
 from tornado.escape import json_decode, utf8
 from tornado.gen import coroutine
 from uuid import uuid4
+import os
 
 from .base import BaseHandler
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 class LoginHandler(BaseHandler):
 
@@ -27,6 +29,7 @@ class LoginHandler(BaseHandler):
 
         return token
 
+
     @coroutine
     def post(self):
         try:
@@ -34,6 +37,7 @@ class LoginHandler(BaseHandler):
             email = body['email'].lower().strip()
             if not isinstance(email, str):
                 raise Exception()
+            # password = body['password']
             password = body['password']
             if not isinstance(password, str):
                 raise Exception()
@@ -55,12 +59,29 @@ class LoginHandler(BaseHandler):
           'password': 1
         })
 
+        def aes_ctr_decrypt(a):
+            '''AES decryption function for PII'''
+            key = "thebestsecretkeyintheentireworld"
+            key_bytes = bytes(key, "utf-8")
+            nonce_bytes = os.urandom(16)
+            aes_ctr_cipher = Cipher(algorithms.AES(key_bytes), mode=modes.CTR(nonce_bytes))
+            # aes_ctr_encryptor = aes_ctr_cipher.encryptor()
+            aes_ctr_decryptor = aes_ctr_cipher.decryptor()
+            # plaintext_bytes = bytes(a, "utf-8")
+            # ciphertext_bytes = aes_ctr_encryptor.update(a)
+            plaintext_bytes_2 = aes_ctr_decryptor.update(a)
+            # plaintext_2 = str(plaintext_bytes_2, "utf-8")
+            return plaintext_bytes_2
+
+        a = user['password']
+        old_password = aes_ctr_decrypt(a)
+
         if user is None:
-            self.send_error(403, message='The email address and password are invalid!')
+            self.send_error(403, message=' invalid user!')
             return
 
-        if user['password'] != password:
-            self.send_error(403, message='The email address and password are invalid!')
+        if old_password != password:
+            self.send_error(403, message=a)
             return
 
         token = yield self.generate_token(email)
