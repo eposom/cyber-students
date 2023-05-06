@@ -5,7 +5,8 @@ from tornado.gen import coroutine
 
 from .base import BaseHandler
 import os
-import base64
+
+from cryptography.fernet import Fernet
 
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -60,48 +61,33 @@ class RegistrationHandler(BaseHandler):
             self.send_error(409, message='A user with the given email address already exists!')
             return
 
-        def hashing(a):
+        def hashing(password):
             '''This is the hashing function for password'''
             salt = os.urandom(16)
-            # key = "f1nd1ngn3m0456789"
-            # salt =bytes(key, "utf-8")
             kdf = Scrypt(salt=salt, length=32, n=2 ** 14, r=8, p=1)
-            passphrase_bytes = bytes(a, "utf-8")
-            s
-            # base64_string = salt.split(", ")[1][1:-1]
-            # binary_data = base64.b64decode(base64_string)
+            passphrase_bytes = bytes(password, "utf-8")
             hashed_passphrase = kdf.derive(passphrase_bytes)
-            return hashed_passphrase.hex(), salt
+            return hashed_passphrase, salt
 
-        def aes_ctr_encrypt(a):
-            '''AES encryption function for PII'''
-            key = "thebestsecretkeyintheentireworld"
-            key_bytes = bytes(key, "utf-8")
-            nonce_bytes = os.urandom(16)
-            aes_ctr_cipher = Cipher(algorithms.AES(key_bytes), mode=modes.CTR(nonce_bytes))
-            aes_ctr_encryptor = aes_ctr_cipher.encryptor()
-            #aes_ctr_decryptor = aes_ctr_cipher.decryptor()
-            plaintext_bytes = bytes(a, "utf-8")
-            ciphertext_bytes = aes_ctr_encryptor.update(plaintext_bytes)
-            return ciphertext_bytes.hex()
+        def fernet(data):
+            '''This is used to encrypt the PII'''
+            key = b'_hvalJR7aypIu1uOXUlyi55My3hX74DTixe1x_Y_HIc='
+            f = Fernet(key)
+            return f.encrypt(bytes(data, "utf-8"))
 
-        # def extract_bin_salt(a):
-        #     base64_string = a.split(", ")[1][1:-1]
-        #     binary_data = base64.b64decode(base64_string)
-        #     return binary_data
-
+        hashed_password = hashing(password)  #This generates a hashed value for password and also return the salt value used
 
         yield self.db.users.insert_one({
             'email': email,
-            # 'password': password,
-            'password': hashing(password[0]),
-            'fullname': full_name,
-            'address': aes_ctr_encrypt(address),
-            'disability': aes_ctr_encrypt(disability),
-            'dateofbirth': aes_ctr_encrypt(dob),
-            'phoneNumber': phone_number,
+            'password': hashed_password[0],
+            'fullname': fernet(full_name),
+            'address': fernet(address),
+            'disability': fernet(disability),
+            'dateofbirth': fernet(dob),
+            'phoneNumber': fernet(phone_number),
             'displayName': display_name,
-            'salt': hashing(password)[1]
+            'salt': hashed_password[1],
+
         })
 
         self.set_status(200)
@@ -110,7 +96,8 @@ class RegistrationHandler(BaseHandler):
         self.response['address'] = address
         self.response['dateofbirth'] = dob
         self.response['disability'] = disability
+        self.response['phoneNumber'] = phone_number
         self.response['displayName'] = display_name
-        self.response['salt'] = hashing(password)[1]
+
 
         self.write_json()

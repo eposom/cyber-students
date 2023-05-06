@@ -4,10 +4,8 @@ from tornado.escape import json_decode, utf8
 from tornado.gen import coroutine
 from uuid import uuid4
 import os
-import base64
 
 from .base import BaseHandler
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
 class LoginHandler(BaseHandler):
@@ -64,43 +62,26 @@ class LoginHandler(BaseHandler):
         }
             )
 
-        def aes_ctr_encrypt(a):
-            '''AES encryption function for PII'''
-            key = "thebestsecretkeyintheentireworld"
-            key_bytes = bytes(key, "utf-8")
-            nonce_bytes = os.urandom(16)
-            aes_ctr_cipher = Cipher(algorithms.AES(key_bytes), mode=modes.CTR(nonce_bytes))
-            aes_ctr_encryptor = aes_ctr_cipher.encryptor()
-            # aes_ctr_decryptor = aes_ctr_cipher.decryptor()
-            plaintext_bytes = bytes(a, "utf-8")
-            ciphertext_bytes = aes_ctr_encryptor.update(plaintext_bytes)
-            return ciphertext_bytes.hex()
-
-        def hashing(a):
+        def hashing(password, salt):
             '''This is the hashing function for password'''
-            salt = user['salt']
+            # salt = user['salt']
             kdf = Scrypt(salt=salt, length=32, n=2 ** 14, r=8, p=1)
-            passphrase_bytes = bytes(a, "utf-8")
+            passphrase_bytes = bytes(password, "utf-8")
             hashed_passphrase = kdf.derive(passphrase_bytes)
-            return hashed_passphrase.hex()
+            return hashed_passphrase
 
-        # a = user['password']
-        # old_password = aes_ctr_encrypt(password)
-        # print(old_password)
-        data_string = user['salt']
-        base64_string = data_string.split(", ")[1][1:-1]
-        binary_data = base64.b64decode(base64_string)
-        old_password = hashing(binary_data)
+        salt = user['salt']  #this returns the salt value from the db'''
+
+        old_password = hashing(password, salt)  #this generates a hashed value using the same salt used at the registration
 
         if user is None:
             self.send_error(403, message='invalid user!')
             return
 
         if user['password'] != old_password:
-            print(user['salt'])
-            self.send_error(403, message=binary_data)
+            self.send_error(403, message="bad request")
             return
-        print(old_password)
+
         token = yield self.generate_token(email)
 
         self.set_status(200)
