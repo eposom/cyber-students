@@ -5,6 +5,7 @@ from tornado.gen import coroutine
 
 from .base import BaseHandler
 import os
+import base64
 
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -27,10 +28,12 @@ class RegistrationHandler(BaseHandler):
             excep(full_name)
             address = body['address']
             excep(address)
-            disabilities = body['disabilities']
-            excep(disabilities)
+            disability = body['disability']
+            excep(disability)
             dob = body['dateofbirth']
             excep(dob)
+            phone_number=body['phoneNumber']
+            excep(phone_number)
             display_name = body.get('displayName')
             if display_name is None:
                 display_name = email
@@ -47,6 +50,7 @@ class RegistrationHandler(BaseHandler):
         send_erro(full_name)
         send_erro(password)
         send_erro(display_name)
+        send_erro(phone_number)
 
         user = yield self.db.users.find_one({
           'email': email
@@ -59,10 +63,15 @@ class RegistrationHandler(BaseHandler):
         def hashing(a):
             '''This is the hashing function for password'''
             salt = os.urandom(16)
+            # key = "f1nd1ngn3m0456789"
+            # salt =bytes(key, "utf-8")
             kdf = Scrypt(salt=salt, length=32, n=2 ** 14, r=8, p=1)
             passphrase_bytes = bytes(a, "utf-8")
+            s
+            # base64_string = salt.split(", ")[1][1:-1]
+            # binary_data = base64.b64decode(base64_string)
             hashed_passphrase = kdf.derive(passphrase_bytes)
-            return hashed_passphrase.hex()
+            return hashed_passphrase.hex(), salt
 
         def aes_ctr_encrypt(a):
             '''AES encryption function for PII'''
@@ -76,15 +85,23 @@ class RegistrationHandler(BaseHandler):
             ciphertext_bytes = aes_ctr_encryptor.update(plaintext_bytes)
             return ciphertext_bytes.hex()
 
+        # def extract_bin_salt(a):
+        #     base64_string = a.split(", ")[1][1:-1]
+        #     binary_data = base64.b64decode(base64_string)
+        #     return binary_data
+
+
         yield self.db.users.insert_one({
             'email': email,
-            #'password': hashing(password),
-            'password': aes_ctr_encrypt(password),
+            # 'password': password,
+            'password': hashing(password[0]),
             'fullname': full_name,
             'address': aes_ctr_encrypt(address),
-            'disabilities': aes_ctr_encrypt(disabilities),
+            'disability': aes_ctr_encrypt(disability),
             'dateofbirth': aes_ctr_encrypt(dob),
-            'displayName': display_name
+            'phoneNumber': phone_number,
+            'displayName': display_name,
+            'salt': hashing(password)[1]
         })
 
         self.set_status(200)
@@ -92,7 +109,8 @@ class RegistrationHandler(BaseHandler):
         self.response['fullname'] = full_name
         self.response['address'] = address
         self.response['dateofbirth'] = dob
-        self.response['disabilities'] = disabilities
+        self.response['disability'] = disability
         self.response['displayName'] = display_name
+        self.response['salt'] = hashing(password)[1]
 
         self.write_json()

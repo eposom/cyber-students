@@ -3,6 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="424555c0-2907-4caa-976d-0653ec56629d" name="Default Changelist" comment="updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/handlers/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/handlers/auth.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/handlers/login.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/handlers/login.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/handlers/registration.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/handlers/registration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/handlers/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/handlers/user.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +26,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
   </component>
-  <component name="RunManager" selected="Python.aes_ctr_encrypt_decrypt">
+  <component name="RunManager" selected="Python.hash_passphrase">
     <configuration name="aes_ctr_encrypt_decrypt" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="cyber-students" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -109,9 +113,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.hash_passphrase" />
         <item itemvalue="Python.aes_ctr_encrypt_decrypt" />
         <item itemvalue="Python.login" />
-        <item itemvalue="Python.hash_passphrase" />
         <item itemvalue="Python.registration" />
       </list>
     </recent_temporary>
@@ -145,6 +149,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="updated" />

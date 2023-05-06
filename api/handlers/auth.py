@@ -27,7 +27,11 @@ class AuthHandler(BaseHandler):
         }, {
             'email': 1,
             'displayName': 1,
-            'expiresIn': 1
+            'expiresIn': 1,
+            'fullname': 1,
+            'address': 1,
+            'disability': 1,
+            'dateofbirth': 1
         })
 
         if user is None:
@@ -43,5 +47,9 @@ class AuthHandler(BaseHandler):
 
         self.current_user = {
             'email': user['email'],
-            'display_name': user['displayName']
+            'display_name': user['displayName'],
+            'fullname': user['fullname'],
+            'address': user['address'],
+            'disability': user['disability'],
+            'dateofbirth': user['dateofbirth']
         }
