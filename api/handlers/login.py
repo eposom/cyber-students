@@ -75,11 +75,11 @@ class LoginHandler(BaseHandler):
         old_password = hashing(password, salt)  #this generates a hashed value using the same salt used at the registration
 
         if user is None:
-            self.send_error(403, message='invalid user!')
+            self.send_error(403, message='The email address and password are invalid!')
             return
 
         if user['password'] != old_password:
-            self.send_error(403, message="bad request")
+            self.send_error(403, message='The email address and password are invalid!')
             return
 
         token = yield self.generate_token(email)

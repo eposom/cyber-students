@@ -19,8 +19,11 @@ class RegistrationHandler(BaseHandler):
             body = json_decode(self.request.body)
 
             def excep(a):
+                '''String Exception FUnction'''
                 if not isinstance(a, str):
                     raise Exception()
+
+
             email = body['email'].lower().strip()
             excep(email)
             password = body['password']
@@ -33,20 +36,24 @@ class RegistrationHandler(BaseHandler):
             excep(disability)
             dob = body['dateofbirth']
             excep(dob)
-            phone_number=body['phoneNumber']
+            phone_number = body['phoneNumber']
             excep(phone_number)
             display_name = body.get('displayName')
+
             if display_name is None:
                 display_name = email
             excep(display_name)
+
         except Exception as e:
             self.send_error(400, message='You must provide an email address, password and display name!')
             return
 
         def send_erro(a):
+            '''Error Code Exception Function'''
             if not a:
                 self.send_error(400, message=f'The {a} is invalid!')
             return
+
         send_erro(email)
         send_erro(full_name)
         send_erro(password)
@@ -79,14 +86,14 @@ class RegistrationHandler(BaseHandler):
 
         yield self.db.users.insert_one({
             'email': email,
-            'password': hashed_password[0],
+            'password': hashed_password[0],  #This returns the hashed password
             'fullname': fernet(full_name),
             'address': fernet(address),
             'disability': fernet(disability),
             'dateofbirth': fernet(dob),
             'phoneNumber': fernet(phone_number),
             'displayName': display_name,
-            'salt': hashed_password[1],
+            'salt': hashed_password[1],     #This returns the salt value
 
         })
 
